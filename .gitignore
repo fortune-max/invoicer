@@ -1,3 +1,6 @@
 __pycache__/
 .DS_Store
-*.pyc
+*.py[cod]
+db.sqlite3
+db.sqlite3-journal
+
