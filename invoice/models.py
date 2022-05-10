@@ -62,6 +62,10 @@ class CashCall(models.Model):
     def bill_count(self):
         return len(Bill.objects.filter(cashcall=self.pk))
 
+    @property
+    def bills(self):
+        return Bill.objects.filter(cashcall=self.pk)
+
     def __str__(self):
         return f"{self.investor.name} €{self.amount_paid} of €{self.total_amount} paid"
 
