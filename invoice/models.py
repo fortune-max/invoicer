@@ -1,10 +1,16 @@
+from decimal import Decimal
 from django.db import models
 from datetime import date
+from django.utils.timezone import now
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+PRICE_VALIDATOR=[MinValueValidator(Decimal('0.00'))]
+PERCENTAGE_VALIDATOR = [MinValueValidator(0), MaxValueValidator(100)]
 
 class Investor(models.Model):
     name = models.CharField(max_length=50)
     email = models.EmailField()
-    join_date = models.DateField()
+    join_date = models.DateField(default=now)
     active_member = models.BooleanField()
 
     def __str__(self):
@@ -13,14 +19,18 @@ class Investor(models.Model):
 
 class Investment(models.Model):
     name = models.CharField(max_length=50)
-    date_created = models.DateField()
-    fee_percent = models.DecimalField(max_digits=20, decimal_places=2)
-    total_amount = models.DecimalField(max_digits=20, decimal_places=2)
-    amount_paid = models.DecimalField(max_digits=20, decimal_places=2)
-    amount_waived = models.DecimalField(max_digits=20, decimal_places=2)
+    date_created = models.DateField(default=now)
+    fee_percent = models.DecimalField(max_digits=10, decimal_places=2, validators=PERCENTAGE_VALIDATOR)
+    total_amount = models.DecimalField(max_digits=20, decimal_places=2, validators=PRICE_VALIDATOR)
+    amount_paid = models.DecimalField(max_digits=20, decimal_places=2, default=0, validators=PRICE_VALIDATOR)
+    amount_waived = models.DecimalField(max_digits=20, decimal_places=2, default=0, validators=PRICE_VALIDATOR)
     total_instalments = models.IntegerField()
-    last_instalment = models.IntegerField()
+    last_instalment = models.IntegerField(default=0)
     investor = models.ForeignKey(Investor, on_delete=models.CASCADE)
+
+    @property
+    def amount_left(self):
+        return max(self.total_amount - (self.amount_waived + self.amount_paid), 0)
 
     @property
     def fulfilled(self):
@@ -33,7 +43,7 @@ class Investment(models.Model):
 class CashCall(models.Model):
     sent_date = models.DateField(blank=True, null=True)
     due_date = models.DateField(blank=True, null=True)
-    sent = models.BooleanField()
+    sent = models.BooleanField(default=False)
     investor = models.ForeignKey(Investor, on_delete=models.CASCADE)
 
     @property
@@ -54,7 +64,7 @@ class CashCall(models.Model):
 
     @property
     def overdue(self):
-        if self.fulfilled:
+        if self.fulfilled or not self.sent:
             return False
         return date.today() > self.due_date
 
@@ -73,14 +83,14 @@ class CashCall(models.Model):
 class Bill(models.Model):
     frequency = models.CharField(max_length=10) # Y5 (quinquennial), O1 (oneoff), M2 (bimonthly), D1 (daily)
     bill_type = models.CharField(max_length=50) # INVESTMENT, MEMBERSHIP
-    amount = models.DecimalField(max_digits=20, decimal_places=2)
+    amount = models.DecimalField(max_digits=20, decimal_places=2, validators=PRICE_VALIDATOR)
     investor = models.ForeignKey(Investor, on_delete=models.CASCADE)
-    validated = models.BooleanField()
-    invalid = models.BooleanField()
-    fulfilled_one = models.BooleanField()
-    fulfilled_all = models.BooleanField()
+    validated = models.BooleanField(default=False)
+    invalid = models.BooleanField(default=False)
+    fulfilled_one = models.BooleanField(default=False)
+    fulfilled_all = models.BooleanField(default=False)
     cashcall = models.ForeignKey(CashCall, on_delete=models.CASCADE)
-    date = models.DateField()
+    date = models.DateField(default=now)
     # specific to yearly investments
     instalment_no = models.IntegerField(blank=True, null=True)
     investment = models.ForeignKey(Investment, on_delete=models.CASCADE, blank=True, null=True)
