@@ -34,7 +34,6 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
-    'cashcall.apps.CashcallConfig',
     'invoice',
     'rest_framework',
     'django.contrib.admin',
