@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import CashCall, Investment, Investor, Bill
 
-class BillSerializer(serializers.HyperlinkedModelSerializer):
+class BillSerializer(serializers.ModelSerializer):
     fulfilled = serializers.ReadOnlyField()
 
     class Meta:
@@ -9,7 +9,7 @@ class BillSerializer(serializers.HyperlinkedModelSerializer):
         fields = "__all__"
         depth = 1
 
-class CashCallSerializer(serializers.HyperlinkedModelSerializer):
+class CashCallSerializer(serializers.ModelSerializer):
     total_amount = serializers.ReadOnlyField()
     amount_paid = serializers.ReadOnlyField()
     validated = serializers.ReadOnlyField()
@@ -25,13 +25,13 @@ class CashCallSerializer(serializers.HyperlinkedModelSerializer):
     def get_bills(self, cashcall):
         return BillSerializer(cashcall.bills.all(), many=True).data
 
-class InvestmentSerializer(serializers.HyperlinkedModelSerializer):
+class InvestmentSerializer(serializers.ModelSerializer):
     fulfilled = serializers.ReadOnlyField()
     class Meta:
         model = Investment
         fields = "__all__"
 
-class InvestorSerializer(serializers.HyperlinkedModelSerializer):
+class InvestorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Investor
         fields = "__all__"
