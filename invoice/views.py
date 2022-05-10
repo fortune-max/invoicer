@@ -4,25 +4,17 @@ from invoice.serializer import BillSerializer, CashCallSerializer, InvestmentSer
 
 
 class CashCallViewSet(viewsets.ModelViewSet):
+    queryset = CashCall.objects.all()
     serializer_class = CashCallSerializer
 
-    def get_queryset(self):
-        return CashCall.objects.all()
-
 class InvestorViewSet(viewsets.ModelViewSet):
+    queryset = Investor.objects.all()
     serializer_class = InvestorSerializer
 
-    def get_queryset(self):
-        return Investor.objects.all()
-
 class InvestmentViewSet(viewsets.ModelViewSet):
+    queryset = Investment.objects.all()
     serializer_class = InvestmentSerializer
 
-    def get_queryset(self):
-        return Investment.objects.all()
-
 class BillViewSet(viewsets.ModelViewSet):
+    queryset = Bill.objects.all()
     serializer_class = BillSerializer
-
-    def get_queryset(self):
-        return Bill.objects.all()
