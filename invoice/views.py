@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from rest_framework import viewsets
 from ast import literal_eval as safe_eval
 from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
 from .models import CashCall, Investment, Investor, Bill
 from invoice.serializer import BillSerializer, CashCallSerializer, InvestmentSerializer, InvestorSerializer
 
@@ -69,6 +70,7 @@ class BillViewSet(viewsets.ModelViewSet):
 def generate(self):
     return HttpResponse("Hello world")
 
+@csrf_exempt # Allow cURL to hit this
 def send(self):
     cashcall_id = self.POST.get("cashcall_id")
     if cashcall_id:
@@ -93,5 +95,17 @@ def send(self):
         response.append(f"Successfully sent cashcall {cashcall.id} to {cashcall.investor.name} ({cashcall.investor.email})")
     return HttpResponse('\n'.join(response))
 
+@csrf_exempt # Allow cURL to hit this
 def validate(self):
-    return HttpResponse("Holla")
+    cashcall_id = self.POST.get("cashcall_id")
+    if cashcall_id:
+        cashcall = get_object_or_404(CashCall, pk=cashcall_id)
+        if cashcall.validated:
+            return HttpResponse("Cashcall already validated")
+        if cashcall.bill_count == 0:
+            return HttpResponse("Cashcall contains no bills")
+        for bill in cashcall.bills:
+            bill.validated = True
+            bill.save()
+        return HttpResponse("Cashcall successfully validated")
+    return HttpResponse("POST cashcall ID's to be validated to this endpoint. eg curl -d 'cashcall_id=2' -X POST http://../validate")
