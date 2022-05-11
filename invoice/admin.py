@@ -88,3 +88,10 @@ def bill_membership_active_toggle(sender, instance, *args, **kwargs):
         membership_cashcall.save()
         membership_bill.save()
     pass
+
+# Ensure that amount is set to 0 EUR when bill is set to ignored/not valid
+@receiver(pre_save, sender=models.Bill)
+def bill_membership_active_toggle(sender, instance, *args, **kwargs):
+    bill_old = models.Bill.objects.get(pk=instance.id)
+    if bill_old.ignore==False and instance.ignore==True:
+        instance.amount = 0
