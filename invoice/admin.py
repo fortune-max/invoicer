@@ -28,8 +28,7 @@ def bill_membership(sender, instance, created, **kwargs):
             investor = instance,
             validated = True,
             ignore = True,
-            fulfilled_one = True,
-            fulfilled_all = True,
+            fulfilled = True,
             cashcall = membership_cashcall,
         )
         membership_cashcall.save()
@@ -82,8 +81,7 @@ def bill_membership_active_toggle(sender, instance, *args, **kwargs):
                 investor = instance,
                 validated = True,
                 ignore = True,
-                fulfilled_one = True,
-                fulfilled_all = True,
+                fulfilled = True,
                 cashcall = membership_cashcall,
             )
             membership_cashcall.save()

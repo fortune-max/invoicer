@@ -87,17 +87,12 @@ class Bill(models.Model):
     investor = models.ForeignKey(Investor, on_delete=models.CASCADE)
     validated = models.BooleanField(default=False)
     ignore = models.BooleanField(default=False)
-    fulfilled_one = models.BooleanField(default=False)
-    fulfilled_all = models.BooleanField(default=False)
+    fulfilled = models.BooleanField(default=False)
     cashcall = models.ForeignKey(CashCall, on_delete=models.CASCADE)
     date = models.DateField(default=now)
     # specific to yearly investments
     instalment_no = models.IntegerField(blank=True, null=True)
     investment = models.ForeignKey(Investment, on_delete=models.CASCADE, blank=True, null=True)
-    
-    @property
-    def fulfilled(self):
-        return self.fulfilled_one and self.fulfilled_all
     
     def __str__(self):
         return f"{self.investor.name} {self.bill_type} {self.amount}"
