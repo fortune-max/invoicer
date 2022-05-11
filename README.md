@@ -53,6 +53,7 @@ And to view a single cashcall,
 `curl http://localhost:8000/invoice/cashcall/3/`
 
 **Query Params**
+
 One or more query params may be added to our call, to limit our results from cashcall endpoint.
 - `?investor_id=3`
 This limits our request to all cashcalls pertaining to the Investor with ID of 3.
@@ -69,6 +70,7 @@ This limits our cashcalls to only those which have not yet been validated (check
 Also note that `investor_id`, `validated`, `sent`, and `fulfilled` can as well be passed as query params to `/bill/`, and `/investment/` endpoints.
 
 **Bills**
+
 A Bill is a record containing a single item of purchase or subscription due an Investor. A collection of bills by the same Investor make a cashcall.
 
 To view all bills
@@ -87,6 +89,7 @@ The same query params as cashcall apply to bills (`investor_id`, `fulfilled`, `s
 
 
 **Investments**
+
 An Investment represents a commitment by an Investor to pay a percentage of an agreed upon amount as an instalment each period (usually a year).
 
 To view all investments
