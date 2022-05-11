@@ -4,6 +4,8 @@ from rest_framework import viewsets
 from ast import literal_eval as safe_eval
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
+
+from invoice.utils import calc_amount_due_investment, calc_amount_due_membership, get_cashcall
 from .models import CashCall, Investment, Investor, Bill
 from invoice.serializer import BillSerializer, CashCallSerializer, InvestmentSerializer, InvestorSerializer
 
@@ -68,6 +70,56 @@ class BillViewSet(viewsets.ModelViewSet):
 
 
 def generate(self):
+    response = []
+    today = date.today()
+    two_years_ago = today.replace(year=today.year-2)
+
+    # Generate bills for membership, TODO check if user is active
+    bills = Bill.objects.filter(date__gt=two_years_ago).filter(bill_type="MEMBERSHIP").order_by("date") # oldest to newest
+    last_membership_bill = {bill.investor.id: bill for bill in bills}
+    for investor_id, bill in last_membership_bill.items():
+        next_bill_date = bill.date.replace(year=bill.date.year+1)
+        if next_bill_date <= today:
+            investor = Investor.objects.get(pk=investor_id)
+            membership_cashcall = get_cashcall(investor=investor, validated=False)
+            membership_bill = Bill(
+                frequency = "Y1",
+                bill_type = "MEMBERSHIP",
+                amount = calc_amount_due_membership(investor=investor),
+                investor = investor,
+                cashcall = membership_cashcall,
+                date = next_bill_date,
+            )
+            membership_bill.save()
+            response.append(f"Billed {investor.name} {membership_bill.amount} EUR for yearly membership")
+
+    # Generate bills for investment, TODO check if user is active
+    bills = Bill.objects.filter(date__gt=two_years_ago).filter(bill_type="INVESTMENT").order_by("date") # oldest to newest
+    bills = [bill for bill in bills if not bill.investment.fulfilled and bill.investment.last_instalment < bill.investment.total_instalments]
+    last_investment_bill = {bill.investor.id: bill for bill in bills}
+    for investor_id, bill in last_investment_bill.items():
+        next_bill_date = bill.date.replace(year=bill.date.year+1)
+        if next_bill_date <= today:
+            investor = Investor.objects.get(pk=investor_id)
+            active = investor.active_member
+            investment = bill.investment
+            investment_cashcall = get_cashcall(investor=investor, validated=False)
+            investment_bill = Bill(
+                frequency = "Y1",
+                bill_type = "INVESTMENT",
+                amount = calc_amount_due_investment(investment=bill.investment, instalment_no=bill.instalment_no + 1) #TODO chk active
+                investor = investor,
+                cashcall = membership_cashcall,
+                date = next_bill_date,
+            )
+            if not active:
+                investment_bill.amount = 0
+                investment_bill.validated = True
+                investment_bill.ignore = True
+                investment_bill.fulfilled = True
+            investment_bill.save()
+            response.append(f"")
+    
     return HttpResponse("Hello world")
 
 @csrf_exempt # Allow cURL to hit this
