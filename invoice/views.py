@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from django.http import HttpResponse
 from rest_framework import viewsets
 from ast import literal_eval as safe_eval
@@ -69,4 +70,28 @@ def generate(self):
     return HttpResponse("Hello world")
 
 def send(self):
-    return HttpResponse("Sent")
+    cashcall_id = self.POST.get("cashcall_id")
+    if cashcall_id:
+        cashcall = get_object_or_404(CashCall, pk=cashcall_id)
+        if not cashcall.validated:
+            return HttpResponse("Unable to send this cashcall, validate it first")
+        cashcall.sent = True
+        cashcall.sent_date = date.today()
+        cashcall.due_date = date.today() + timedelta(days=62)
+        cashcall.save()
+        return HttpResponse(f"Successfully sent cashcall {cashcall_id} to {cashcall.investor.name} ({cashcall.investor.email})")
+    # send all validated cashcalls available
+    cashcalls = [cashcall for cashcall in CashCall.objects.filter(sent=False) if cashcall.validated]
+    if not cashcalls:
+        return HttpResponse("No validated cashcalls in queue to send")
+    response = []
+    for cashcall in cashcalls:
+        cashcall.sent = True
+        cashcall.sent_date = date.today()
+        cashcall.due_date = date.today() + timedelta(days=62)
+        cashcall.save()
+        response.append(f"Successfully sent cashcall {cashcall.id} to {cashcall.investor.name} ({cashcall.investor.email})")
+    return HttpResponse('\n'.join(response))
+
+def validate(self):
+    return HttpResponse("Holla")
