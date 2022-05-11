@@ -20,7 +20,7 @@ Activate the virtual environment.
 
 Load some data into the database
 
-`python manage.py loaddata fixtures/mydata`
+`python manage.py loaddata fixtures/mydata.json`
 
 Then start the server.
 
