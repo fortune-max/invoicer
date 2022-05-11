@@ -102,25 +102,24 @@ def generate(self):
         if next_bill_date <= today:
             investor = Investor.objects.get(pk=investor_id)
             active = investor.active_member
-            investment = bill.investment
-            investment_cashcall = get_cashcall(investor=investor, validated=False)
+            amount = calc_amount_due_investment(investment=bill.investment, instalment_no=bill.instalment_no + 1)
+            investment_cashcall = get_cashcall(investor, False) if active else get_cashcall(investor, True)
             investment_bill = Bill(
                 frequency = "Y1",
                 bill_type = "INVESTMENT",
-                amount = calc_amount_due_investment(investment=bill.investment, instalment_no=bill.instalment_no + 1) #TODO chk active
+                amount = amount if active else 0,
+                validated = False if active else True,
+                ignore = False if active else True,
+                fulfilled = False if active else True,
                 investor = investor,
-                cashcall = membership_cashcall,
+                cashcall = investment_cashcall,
                 date = next_bill_date,
+                investment = bill.investment,
+                instalment_no = bill.instalment_no + active,
             )
-            if not active:
-                investment_bill.amount = 0
-                investment_bill.validated = True
-                investment_bill.ignore = True
-                investment_bill.fulfilled = True
             investment_bill.save()
-            response.append(f"")
-    
-    return HttpResponse("Hello world")
+            response.append(f"Billed {investor.name} {amount} EUR for yearly investment")
+    return HttpResponse('\n'.join(response))
 
 @csrf_exempt # Allow cURL to hit this
 def send(self):
