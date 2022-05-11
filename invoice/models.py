@@ -86,7 +86,7 @@ class Bill(models.Model):
     amount = models.DecimalField(max_digits=20, decimal_places=2, validators=PRICE_VALIDATOR)
     investor = models.ForeignKey(Investor, on_delete=models.CASCADE)
     validated = models.BooleanField(default=False)
-    invalid = models.BooleanField(default=False)
+    ignore = models.BooleanField(default=False)
     fulfilled_one = models.BooleanField(default=False)
     fulfilled_all = models.BooleanField(default=False)
     cashcall = models.ForeignKey(CashCall, on_delete=models.CASCADE)
