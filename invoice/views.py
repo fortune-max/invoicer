@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from rest_framework import viewsets
 from ast import literal_eval as safe_eval
 from django.shortcuts import get_object_or_404
@@ -62,3 +63,10 @@ class BillViewSet(viewsets.ModelViewSet):
         if sent:
             queryset = [bill for bill in queryset if bill.cashcall.sent==safe_eval(sent)]
         return queryset
+
+
+def generate(self):
+    return HttpResponse("Hello world")
+
+def send(self):
+    return HttpResponse("Sent")
