@@ -56,7 +56,7 @@ class CashCall(models.Model):
 
     @property
     def validated(self):
-        return all([bill.validated for bill in Bill.objects.filter(cashcall=self.pk)])
+        return all([bill.validated for bill in Bill.objects.filter(cashcall=self.pk)] or [False])
 
     @property
     def fulfilled(self):
