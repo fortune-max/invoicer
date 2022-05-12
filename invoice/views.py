@@ -1,12 +1,12 @@
+from rest_framework import viewsets
 from datetime import date, timedelta
 from django.http import HttpResponse
-from rest_framework import viewsets
 from ast import literal_eval as safe_eval
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 
-from invoice.utils import calc_amount_due_investment, calc_amount_due_membership, get_cashcall
 from .models import CashCall, Investment, Investor, Bill
+from invoice.utils import calc_amount_due_investment, calc_amount_due_membership, get_cashcall
 from invoice.serializer import BillSerializer, CashCallSerializer, InvestmentSerializer, InvestorSerializer
 
 
@@ -75,17 +75,22 @@ def generate(self):
     two_years_ago = today.replace(year=today.year-2)
 
     # Generate bills for membership, TODO check if user is active
-    bills = Bill.objects.filter(date__gt=two_years_ago).filter(bill_type="MEMBERSHIP").order_by("date") # oldest to newest
+    bills = Bill.objects.filter(date__gt=two_years_ago, bill_type="MEMBERSHIP", frequency="Y1").order_by("date") # oldest to newest
     last_membership_bill = {bill.investor.id: bill for bill in bills}
     for investor_id, bill in last_membership_bill.items():
         next_bill_date = bill.date.replace(year=bill.date.year+1)
         if next_bill_date <= today:
             investor = Investor.objects.get(pk=investor_id)
-            membership_cashcall = get_cashcall(investor=investor, validated=False)
+            active = investor.active_member
+            amount = calc_amount_due_membership(investor=investor)
+            membership_cashcall = get_cashcall(investor=investor, validated=not active)
             membership_bill = Bill(
                 frequency = "Y1",
                 bill_type = "MEMBERSHIP",
-                amount = calc_amount_due_membership(investor=investor),
+                amount = amount if active else 0,
+                validated = False if active else True,
+                ignore = False if active else True,
+                fulfilled = False if active else True,
                 investor = investor,
                 cashcall = membership_cashcall,
                 date = next_bill_date,
@@ -94,7 +99,7 @@ def generate(self):
             response.append(f"Billed {investor.name} {membership_bill.amount} EUR for yearly membership")
 
     # Generate bills for investment, TODO check if user is active
-    bills = Bill.objects.filter(date__gt=two_years_ago).filter(bill_type="INVESTMENT").order_by("date") # oldest to newest
+    bills = Bill.objects.filter(date__gt=two_years_ago, bill_type="INVESTMENT", frequency="Y1").order_by("date") # oldest to newest
     bills = [bill for bill in bills if not bill.investment.fulfilled and bill.investment.last_instalment < bill.investment.total_instalments]
     last_investment_bill = {bill.investor.id: bill for bill in bills}
     for investor_id, bill in last_investment_bill.items():
@@ -103,7 +108,7 @@ def generate(self):
             investor = Investor.objects.get(pk=investor_id)
             active = investor.active_member
             amount = calc_amount_due_investment(investment=bill.investment, instalment_no=bill.instalment_no + 1)
-            investment_cashcall = get_cashcall(investor, False) if active else get_cashcall(investor, True)
+            investment_cashcall = get_cashcall(investor=investor, validated=not active)
             investment_bill = Bill(
                 frequency = "Y1",
                 bill_type = "INVESTMENT",
