@@ -26,7 +26,7 @@ Then start the server.
 
 `python manage.py runserver`
 
-## Endpoints
+## Endpoints - 1 (Models)
 Here are some important endpoints. We are working with the server running on localhost, port 8000.
 
 **Investors**
@@ -59,7 +59,7 @@ One or more query params may be added to our call, to limit our results from cas
 This limits our request to all cashcalls pertaining to the Investor with ID of 3.
 
 - `?validated=1`
-This limits our cashcalls to only those which have not yet been validated (checked off on by a human).
+This limits our cashcalls to only those which have been validated (checked off on by a human).
 
 - `?sent=1`
   This limits our cashcalls to only those which have been sent to their respective Investor.
@@ -67,7 +67,7 @@ This limits our cashcalls to only those which have not yet been validated (check
 - `?fulfilled=1`
   This limits our cashcalls to only those which the Investor has fully settled.
 
-Also note that `investor_id`, `validated`, `sent`, and `fulfilled` can as well be passed as query params to `/bill/`, and `/investment/` endpoints.
+Also note that `investor_id`, `validated`, `sent`, and `fulfilled` can as well be passed as query params to `/bill/`, and `/investment/` endpoints. They can also accept falsy values.
 
 **Bills**
 
@@ -101,3 +101,62 @@ And to view a single investment,
 `curl http://localhost:8000/invoice/investment/1/`
 
 Similar to `Bill` and `Cashcall`, `Investment` also takes the same query parameters (`investor_id`, `fulfilled`, `sent`, `validated`).
+
+##Endpoints - 2 (Billing)
+Following are not view endpoints and are used for operating on the models above by initiating an action on them.
+
+**Generate**
+
+This generates cashcalls containing bills not yet generated which are presently due. The generated cashcalls/bills are held in the database to be later viewed and validated by a human, and sent out.
+
+To generate investment or membership bills for an investor with ID 3 (if his last payment is over a year old):
+
+`curl -X POST -d "investor_id=3" http://localhost:8000/invoice/generate/`
+
+To generate all pending bills/cashcalls for all investors:
+
+`curl -X POST -d "all=1" http://localhost:8000/invoice/generate/`
+
+**Validate**
+
+Following generation, it is necessary to validate cashcalls to verify they can be sent out to investors.
+
+To validate a cashcall with ID 2:
+
+`curl -X POST -d "cashcall_id=2" http://localhost:8000/invoice/validate/`
+
+To validate all not validated cashcalls that have been generated so far:
+
+`curl -X POST -d "all=1" http://localhost:8000/invoice/validate/`
+
+**Send**
+
+To send out validated cashcalls to investor's emails, we use the send endpoint.
+
+To send a cashcall with ID 2:
+
+`curl -X POST -d "cashcall_id=2" http://localhost:8000/invoice/send/`
+
+To send out all cashcalls currently validated:
+
+`curl -X POST -d "all=1" http://localhost:8000/invoice/send/`
+
+The `all=1` param allows for putting any/all of these in a job that runs periodically to handle billing of investors.
+
+`/generate/`, `/validate/` and `/send/` also accept a parameter `dry_run=1` to print changes expected without modifying the database.
+
+##Working Principle
+
+At the most fundamental level, the way bills are generated is by considering, for a recurring subscription, it's most recently dated bill. If this bill is older than a year, a new bill for the same subscription is issued.
+
+##Assumptions
+
+1) Bills are either paid in full or not at all.
+2) For memberships, first bill is issued after one-year of membership. For investments, first bill is issued as soon as an investor makes a pledge. This way funding is available for the start-up immediately.
+3) When a member chooses to become inactive, their membership is calculated pro-rata from the date of their last membership bill.
+4) If a member joins 21st Jul 2022, they are billed their membership fee on 21st Jul 2023. If another member joins 10th Nov 2024, they are billed on 10th Nov 2025. (Membership billing dates can vary across members).
+5) Investment commitments are billed at the last day of every year.
+6) A cashcall's due date is set to 62 days (2 months) after it was successfully sent out.
+7) Bill computation/generation is done at least once in six months. (Max server downtime is six months).
+8) All currencies in EUR.
+9) If a member has a cumulative spend of ≥ 50k EUR within the last 12 months, they are not billed for membership for that year.
