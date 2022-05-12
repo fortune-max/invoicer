@@ -10,7 +10,7 @@ router.register("investment", views.InvestmentViewSet, "investment")
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("generate", views.generate),
-    path("validate", views.validate),
-    path("send", views.send),
+    path("generate", views.generate, name="generate"),
+    path("validate", views.validate, name="validate"),
+    path("send", views.send, name="send"),
 ]
