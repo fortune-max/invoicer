@@ -1,7 +1,6 @@
 from decimal import Decimal
 from django.db import models
 from datetime import date
-from django.utils.timezone import now
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 PRICE_VALIDATOR=[MinValueValidator(Decimal('0.00'))]
@@ -9,8 +8,8 @@ PERCENTAGE_VALIDATOR = [MinValueValidator(0), MaxValueValidator(100)]
 
 class Investor(models.Model):
     name = models.CharField(max_length=50)
-    email = models.EmailField()
-    join_date = models.DateField(default=now)
+    email = models.EmailField(unique=True)
+    join_date = models.DateField(default=date.today)
     active_member = models.BooleanField()
 
     def __str__(self):
@@ -19,7 +18,7 @@ class Investor(models.Model):
 
 class Investment(models.Model):
     name = models.CharField(max_length=50)
-    date_created = models.DateField(default=now)
+    date_created = models.DateField(default=date.today)
     fee_percent = models.DecimalField(max_digits=10, decimal_places=2, validators=PERCENTAGE_VALIDATOR)
     total_amount = models.DecimalField(max_digits=20, decimal_places=2, validators=PRICE_VALIDATOR)
     amount_paid = models.DecimalField(max_digits=20, decimal_places=2, default=0, validators=PRICE_VALIDATOR)
@@ -89,7 +88,7 @@ class Bill(models.Model):
     ignore = models.BooleanField(default=False)
     fulfilled = models.BooleanField(default=False)
     cashcall = models.ForeignKey(CashCall, on_delete=models.CASCADE)
-    date = models.DateField(default=now)
+    date = models.DateField(default=date.today)
     # specific to yearly investments
     instalment_no = models.IntegerField(blank=True, null=True)
     investment = models.ForeignKey(Investment, on_delete=models.CASCADE, blank=True, null=True)
