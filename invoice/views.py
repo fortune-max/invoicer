@@ -128,6 +128,7 @@ def generate(self):
 def send(self):
     all_cashcalls = self.POST.get("all")
     cashcall_id = self.POST.get("cashcall_id")
+    dry_run = self.POST.get("dry_run")
     if all_cashcalls:
         # send all validated cashcalls available
         cashcalls = [cashcall for cashcall in CashCall.objects.filter(sent=False) if cashcall.validated]
@@ -135,22 +136,24 @@ def send(self):
             return HttpResponse("No validated cashcalls in queue to send")
         response = []
         for cashcall in cashcalls:
-            cashcall.sent = True
-            cashcall.sent_date = date.today()
-            cashcall.due_date = date.today() + timedelta(days=62)
-            cashcall.save()
-            response.append(f"Successfully sent cashcall {cashcall.id} to {cashcall.investor.name} ({cashcall.investor.email})")
+            if not dry_run:
+                cashcall.sent = True
+                cashcall.sent_date = date.today()
+                cashcall.due_date = date.today() + timedelta(days=62)
+                cashcall.save()
+            response.append(f"{'[DRY RUN!!] ' if dry_run else ''}Successfully sent cashcall {cashcall.id} to {cashcall.investor.name} ({cashcall.investor.email})")
         return HttpResponse('\n'.join(response))
     elif cashcall_id:
         # send a specific cash_call
         cashcall = get_object_or_404(CashCall, pk=cashcall_id)
         if not cashcall.validated:
             return HttpResponse("Unable to send this cashcall, validate it first")
-        cashcall.sent = True
-        cashcall.sent_date = date.today()
-        cashcall.due_date = date.today() + timedelta(days=62)
-        cashcall.save()
-        return HttpResponse(f"Successfully sent cashcall {cashcall_id} to {cashcall.investor.name} ({cashcall.investor.email})")
+        if not dry_run:
+            cashcall.sent = True
+            cashcall.sent_date = date.today()
+            cashcall.due_date = date.today() + timedelta(days=62)
+            cashcall.save()
+        return HttpResponse(f"{'[DRY RUN!!] ' if dry_run else ''}Successfully sent cashcall {cashcall_id} to {cashcall.investor.name} ({cashcall.investor.email})")
     return HttpResponse("POST cashcall ID's to be sent to this endpoint. eg curl -d 'cashcall_id=2' -X POST http://localhost:8000/invoice/send")
 
 def validate(self):
