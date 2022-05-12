@@ -126,8 +126,23 @@ def generate(self):
     return HttpResponse('\n'.join(response))
 
 def send(self):
+    all_cashcalls = self.POST.get("all")
     cashcall_id = self.POST.get("cashcall_id")
-    if cashcall_id:
+    if all_cashcalls:
+        # send all validated cashcalls available
+        cashcalls = [cashcall for cashcall in CashCall.objects.filter(sent=False) if cashcall.validated]
+        if not cashcalls:
+            return HttpResponse("No validated cashcalls in queue to send")
+        response = []
+        for cashcall in cashcalls:
+            cashcall.sent = True
+            cashcall.sent_date = date.today()
+            cashcall.due_date = date.today() + timedelta(days=62)
+            cashcall.save()
+            response.append(f"Successfully sent cashcall {cashcall.id} to {cashcall.investor.name} ({cashcall.investor.email})")
+        return HttpResponse('\n'.join(response))
+    elif cashcall_id:
+        # send a specific cash_call
         cashcall = get_object_or_404(CashCall, pk=cashcall_id)
         if not cashcall.validated:
             return HttpResponse("Unable to send this cashcall, validate it first")
@@ -136,29 +151,33 @@ def send(self):
         cashcall.due_date = date.today() + timedelta(days=62)
         cashcall.save()
         return HttpResponse(f"Successfully sent cashcall {cashcall_id} to {cashcall.investor.name} ({cashcall.investor.email})")
-    # send all validated cashcalls available
-    cashcalls = [cashcall for cashcall in CashCall.objects.filter(sent=False) if cashcall.validated]
-    if not cashcalls:
-        return HttpResponse("No validated cashcalls in queue to send")
-    response = []
-    for cashcall in cashcalls:
-        cashcall.sent = True
-        cashcall.sent_date = date.today()
-        cashcall.due_date = date.today() + timedelta(days=62)
-        cashcall.save()
-        response.append(f"Successfully sent cashcall {cashcall.id} to {cashcall.investor.name} ({cashcall.investor.email})")
-    return HttpResponse('\n'.join(response))
+    return HttpResponse("POST cashcall ID's to be sent to this endpoint. eg curl -d 'cashcall_id=2' -X POST http://localhost:8000/invoice/send")
 
 def validate(self):
+    all_cashcalls = self.POST.get("all")
     cashcall_id = self.POST.get("cashcall_id")
-    if cashcall_id:
+    dry_run = self.POST.get("dry_run")
+    if all_cashcalls:
+        cashcalls = [cashcall for cashcall in CashCall.objects.all() if not cashcall.validated and cashcall.bill_count]
+        if not cashcalls:
+            return HttpResponse("No non-empty unvalidated cashcalls in queue to validate")
+        response = []
+        for cashcall in cashcalls:
+            for bill in cashcall.bills:
+                if not dry_run:
+                    bill.validated = True
+                    bill.save()
+                response.append(f"{'[DRY RUN!!] ' if dry_run else ''}Cashcall {cashcall.id} successfully validated")
+        return HttpResponse('\n'.join(response))
+    elif cashcall_id:
         cashcall = get_object_or_404(CashCall, pk=cashcall_id)
         if cashcall.validated:
             return HttpResponse("Cashcall already validated")
         if cashcall.bill_count == 0:
             return HttpResponse("Cashcall contains no bills")
         for bill in cashcall.bills:
-            bill.validated = True
-            bill.save()
-        return HttpResponse("Cashcall successfully validated")
+            if not dry_run:
+                bill.validated = True
+                bill.save()
+        return HttpResponse(f"{'[DRY RUN!!] ' if dry_run else ''}Cashcall successfully validated")
     return HttpResponse("POST cashcall ID's to be validated to this endpoint. eg curl -d 'cashcall_id=2' -X POST http://../validate")
