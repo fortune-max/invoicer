@@ -69,11 +69,11 @@ class BillViewSet(viewsets.ModelViewSet):
 
 def generate(self):
     investor_id = self.POST.get("investor_id")
-    dry_run = safe_eval(self.POST.get("dry_run"))
-    all_investors = safe_eval(self.POST.get("all"))
+    dry_run = safe_eval(self.POST.get("dry_run", "False"))
+    all_investors = safe_eval(self.POST.get("all", "False"))
 
-    if not investor_id or not all_investors:
-        return HttpResponse("POST investor ID's to be sent to this endpoint. eg curl -d 'investor_id=2' -X POST http://localhost:8000/invoice/generate")
+    if not (investor_id or all_investors):
+        return HttpResponse("POST investor ID's whose cashcall & bills are to be generated to this endpoint. eg curl -d 'investor_id=2' -X POST http://localhost:8000/invoice/generate")
 
     response = []
     today = date.today()
@@ -137,12 +137,15 @@ def generate(self):
                 )
                 investment_bill.save()
             response.append(f"{'[DRY RUN!!] ' if dry_run else ''}Billed {investor.name} {amount} EUR for yearly investment")
-    return HttpResponse('\n'.join(response))
+    if response:
+        return HttpResponse('\n'.join(response))
+    else:
+        return HttpResponse("No bills due, no additional cashcalls generated")
 
 def send(self):
-    all_cashcalls = safe_eval(self.POST.get("all"))
+    all_cashcalls = safe_eval(self.POST.get("all", "False"))
     cashcall_id = self.POST.get("cashcall_id")
-    dry_run = safe_eval(self.POST.get("dry_run"))
+    dry_run = safe_eval(self.POST.get("dry_run", "False"))
     if all_cashcalls:
         # send all validated cashcalls available
         cashcalls = [cashcall for cashcall in CashCall.objects.filter(sent=False) if cashcall.validated]
@@ -171,9 +174,9 @@ def send(self):
     return HttpResponse("POST cashcall ID's to be sent to this endpoint. eg curl -d 'cashcall_id=2' -X POST http://localhost:8000/invoice/send")
 
 def validate(self):
-    all_cashcalls = safe_eval(self.POST.get("all"))
+    all_cashcalls = safe_eval(self.POST.get("all", "False"))
     cashcall_id = self.POST.get("cashcall_id")
-    dry_run = safe_eval(self.POST.get("dry_run"))
+    dry_run = safe_eval(self.POST.get("dry_run", "False"))
     if all_cashcalls:
         cashcalls = [cashcall for cashcall in CashCall.objects.all() if not cashcall.validated and cashcall.bill_count]
         if not cashcalls:
@@ -197,4 +200,4 @@ def validate(self):
                 bill.validated = True
                 bill.save()
         return HttpResponse(f"{'[DRY RUN!!] ' if dry_run else ''}Cashcall successfully validated")
-    return HttpResponse("POST cashcall ID's to be validated to this endpoint. eg curl -d 'cashcall_id=2' -X POST http://../validate")
+    return HttpResponse("POST cashcall ID's to be validated to this endpoint. eg curl -d 'cashcall_id=2' -X POST http://localhost:8000/invoice/validate")
