@@ -69,6 +69,7 @@ class BillViewSet(viewsets.ModelViewSet):
 
 def generate(self):
     # todo accept params investor_id, all
+    investor_id = self.POST.get("investor_id")
     response = []
     today = date.today()
     two_years_ago = today.replace(year=today.year-2)
@@ -126,9 +127,9 @@ def generate(self):
     return HttpResponse('\n'.join(response))
 
 def send(self):
-    all_cashcalls = self.POST.get("all")
+    all_cashcalls = safe_eval(self.POST.get("all"))
     cashcall_id = self.POST.get("cashcall_id")
-    dry_run = self.POST.get("dry_run")
+    dry_run = safe_eval(self.POST.get("dry_run"))
     if all_cashcalls:
         # send all validated cashcalls available
         cashcalls = [cashcall for cashcall in CashCall.objects.filter(sent=False) if cashcall.validated]
@@ -157,9 +158,9 @@ def send(self):
     return HttpResponse("POST cashcall ID's to be sent to this endpoint. eg curl -d 'cashcall_id=2' -X POST http://localhost:8000/invoice/send")
 
 def validate(self):
-    all_cashcalls = self.POST.get("all")
+    all_cashcalls = safe_eval(self.POST.get("all"))
     cashcall_id = self.POST.get("cashcall_id")
-    dry_run = self.POST.get("dry_run")
+    dry_run = safe_eval(self.POST.get("dry_run"))
     if all_cashcalls:
         cashcalls = [cashcall for cashcall in CashCall.objects.all() if not cashcall.validated and cashcall.bill_count]
         if not cashcalls:
