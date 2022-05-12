@@ -88,10 +88,10 @@ def generate(self):
     for investor_id, bill in last_membership_bill.items():
         next_bill_date = bill.date.replace(year=bill.date.year+1)
         if next_bill_date <= today:
+            investor = Investor.objects.get(pk=investor_id)
+            active = investor.active_member
+            amount = calc_amount_due_membership(investor=investor)
             if not dry_run:
-                investor = Investor.objects.get(pk=investor_id)
-                active = investor.active_member
-                amount = calc_amount_due_membership(investor=investor)
                 membership_cashcall = get_cashcall(investor=investor, validated=not active)
                 membership_bill = Bill(
                     frequency = "Y1",
@@ -117,10 +117,10 @@ def generate(self):
     for ((investor_id, investment_id), bill) in last_investment_bill.items():
         next_bill_date = bill.date.replace(year=bill.date.year+1)
         if next_bill_date <= today:
+            investor = Investor.objects.get(pk=investor_id)
+            active = investor.active_member
+            amount = calc_amount_due_investment(investment=bill.investment, instalment_no=bill.instalment_no + 1)
             if not dry_run:
-                investor = Investor.objects.get(pk=investor_id)
-                active = investor.active_member
-                amount = calc_amount_due_investment(investment=bill.investment, instalment_no=bill.instalment_no + 1)
                 investment_cashcall = get_cashcall(investor=investor, validated=not active)
                 investment_bill = Bill(
                     frequency = "Y1",
