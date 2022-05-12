@@ -69,7 +69,7 @@ class CashCall(models.Model):
 
     @property
     def bill_count(self):
-        return len(Bill.objects.filter(cashcall=self.pk))
+        return Bill.objects.filter(cashcall=self.pk).count()
 
     @property
     def bills(self):
