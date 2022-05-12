@@ -1,4 +1,5 @@
 from . import models
+from django.db.models import F
 from django.contrib import admin
 from datetime import date, timedelta
 from django.dispatch import receiver
@@ -38,15 +39,20 @@ def bill_membership(sender, instance, created, **kwargs):
 @receiver(post_save, sender=models.Investment)
 def bill_investment(sender, instance, created, **kwargs):
     if created:
+        to_pay, to_waive = calc_amount_due_investment(instance, 1)
         investment_cashcall = get_cashcall(instance.investor, False)
         investment_bill = models.Bill(
             frequency = "Y1",
             bill_type = "INVESTMENT",
-            amount = calc_amount_due_investment(instance, 1),
+            amount = to_pay,
             investor = instance.investor,
             cashcall = investment_cashcall,
+            instalment_no = 1,
+            investment = instance,
         )
         investment_bill.save()
+        instance.amount_waived = F("amount_waived") + to_waive
+        instance.save()
 
 # Bill membership fee on active toggle. 0 EUR if reactivated, {days/yr_days * membership_fee} EUR if deactivated
 @receiver(pre_save, sender=models.Investor)
