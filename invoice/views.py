@@ -3,8 +3,6 @@ from datetime import date, timedelta
 from django.http import HttpResponse
 from ast import literal_eval as safe_eval
 from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
-
 from .models import CashCall, Investment, Investor, Bill
 from invoice.utils import calc_amount_due_investment, calc_amount_due_membership, get_cashcall
 from invoice.serializer import BillSerializer, CashCallSerializer, InvestmentSerializer, InvestorSerializer
@@ -70,11 +68,12 @@ class BillViewSet(viewsets.ModelViewSet):
 
 
 def generate(self):
+    # todo accept params investor_id, all
     response = []
     today = date.today()
     two_years_ago = today.replace(year=today.year-2)
 
-    # Generate bills for membership, TODO check if user is active
+    # Generate bills for membership
     bills = Bill.objects.filter(date__gt=two_years_ago, bill_type="MEMBERSHIP", frequency="Y1").order_by("date") # oldest to newest
     last_membership_bill = {bill.investor.id: bill for bill in bills}
     for investor_id, bill in last_membership_bill.items():
@@ -101,8 +100,8 @@ def generate(self):
     # Generate bills for investment, TODO check if user is active
     bills = Bill.objects.filter(date__gt=two_years_ago, bill_type="INVESTMENT", frequency="Y1").order_by("date") # oldest to newest
     bills = [bill for bill in bills if not bill.investment.fulfilled and bill.investment.last_instalment < bill.investment.total_instalments]
-    last_investment_bill = {bill.investor.id: bill for bill in bills}
-    for investor_id, bill in last_investment_bill.items():
+    last_investment_bill = {(bill.investor.id, bill.investment.id): bill for bill in bills}
+    for ((investor_id, investment_id), bill) in last_investment_bill.items():
         next_bill_date = bill.date.replace(year=bill.date.year+1)
         if next_bill_date <= today:
             investor = Investor.objects.get(pk=investor_id)
@@ -126,7 +125,6 @@ def generate(self):
             response.append(f"Billed {investor.name} {amount} EUR for yearly investment")
     return HttpResponse('\n'.join(response))
 
-@csrf_exempt # Allow cURL to hit this
 def send(self):
     cashcall_id = self.POST.get("cashcall_id")
     if cashcall_id:
@@ -151,7 +149,6 @@ def send(self):
         response.append(f"Successfully sent cashcall {cashcall.id} to {cashcall.investor.name} ({cashcall.investor.email})")
     return HttpResponse('\n'.join(response))
 
-@csrf_exempt # Allow cURL to hit this
 def validate(self):
     cashcall_id = self.POST.get("cashcall_id")
     if cashcall_id:
