@@ -1,3 +1,4 @@
+from django.db.models import F
 from rest_framework import viewsets
 from datetime import date, timedelta
 from django.http import HttpResponse
@@ -119,7 +120,7 @@ def generate(self):
         if next_bill_date <= today:
             investor = Investor.objects.get(pk=investor_id)
             active = investor.active_member
-            amount = calc_amount_due_investment(investment=bill.investment, instalment_no=bill.instalment_no + 1)
+            amount, waived = calc_amount_due_investment(investment=bill.investment, instalment_no=bill.instalment_no + 1)
             if not dry_run:
                 investment_cashcall = get_cashcall(investor=investor, validated=not active)
                 investment_bill = Bill(
@@ -136,6 +137,8 @@ def generate(self):
                     instalment_no = bill.instalment_no + active,
                 )
                 investment_bill.save()
+                bill.investment.amount_waived = F("amount_waived") + waived
+                bill.investment.save()
             response.append(f"{'[DRY RUN!!] ' if dry_run else ''}Billed {investor.name} {amount} EUR for yearly investment")
     if response:
         return HttpResponse('\n'.join(response))
