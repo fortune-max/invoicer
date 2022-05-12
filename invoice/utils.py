@@ -11,7 +11,7 @@ def get_cashcall(investor: Investor, validated: bool):
     Returns the first cashcall for supplied investor that is/is not validated.
     Creates and saves a cashcall if none exists. Helps in grouping bills to appropriate cashcalls.
     """
-    not_sent = CashCall.objects.filter(investor=investor).filter(sent=False).all() # Take cashcalls for investor and not yet sent
+    not_sent = CashCall.objects.filter(investor=investor, sent=False).all() # Take cashcalls for investor and not yet sent
     not_sent = [cashcall for cashcall in not_sent if cashcall.validated==validated or cashcall.bill_count==0] # match validity
     if not_sent:
         return sorted(not_sent, key=lambda x: x.bill_count, reverse=True)[0] # Prioritize non-empty cashcalls to append bill to
