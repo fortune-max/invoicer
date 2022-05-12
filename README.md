@@ -102,7 +102,8 @@ And to view a single investment,
 
 Similar to `Bill` and `Cashcall`, `Investment` also takes the same query parameters (`investor_id`, `fulfilled`, `sent`, `validated`).
 
-##Endpoints - 2 (Billing)
+## Endpoints - 2 (Billing)
+
 Following are not view endpoints and are used for operating on the models above by initiating an action on them.
 
 **Generate**
@@ -149,7 +150,7 @@ The `all=1` param allows for putting any/all of these in a job that runs periodi
 
 At the most fundamental level, the way bills are generated is by considering, for a recurring subscription, it's most recently dated bill. If this bill is older than a year, a new bill for the same subscription is issued.
 
-##Assumptions
+## Assumptions
 
 1) Bills are either paid in full or not at all.
 2) For memberships, first bill is issued after one-year of membership. For investments, first bill is issued as soon as an investor makes a pledge. This way funding is available for the start-up immediately.
