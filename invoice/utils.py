@@ -27,7 +27,7 @@ def calc_amount_due_investment(investment: Investment, instalment_no: int):
     year_rates = {
                 date(2050, 4, 1): {1:dcm(0), 2:dcm(1), 3:dcm(2), "default":dcm(5)},
                 date(2019, 4, 1): {1:dcm(0), 2:dcm(0), 3:dcm(0.2), 4:dcm(0.5), "default":dcm(1)},
-                date(1900, 1, 1): {1:dcm(0), 2:dcm(0), 3:dcm(0), "default": dcm(0)},
+                date(1900, 1, 1): {1:dcm(0), 2:dcm(0), 3:dcm(0), "default":dcm(0)},
             } # dates are lower limits, and are the dates rates were changed. Sorted newest to oldest.
     for date_obj, yearly_discount in year_rates.items():
         if investment.date_created >= date_obj:
@@ -47,10 +47,8 @@ def yearly_spend(investor: Investor, start_date:date, years_back: int):
     """
     Get amount spent by an investor from {start_year-years_back} to {start_year}
     """
-    years = range(start_date.year - years_back, start_date.year + 1)
-    days = sum([days_in_year(year) for year in years])
-    period_start = start_date - timedelta(days=days)
-    relevant_bills = Bill.objects.filter(investor=investor, date__gt=period_start, date__lt=start_date)
+    period_start = start_date.replace(year=start_date.year-years_back)
+    relevant_bills = Bill.objects.filter(investor=investor, fulfilled=True, date__gt=period_start, date__lte=start_date)
     amount_spent = sum([bill.amount for bill in relevant_bills])
     return amount_spent
 

@@ -3,8 +3,8 @@ from datetime import date, timedelta
 from django.test import TestCase
 from rest_framework import status
 from .models import Bill, CashCall, Investment, Investor
-from .utils import get_cashcall, calc_amount_due_investment, calc_amount_due_membership
 from .serializer import BillSerializer, CashCallSerializer, InvestmentSerializer, InvestorSerializer
+from .utils import get_cashcall, yearly_spend, calc_amount_due_investment, calc_amount_due_membership
 
 
 class Test(TestCase):
@@ -81,3 +81,58 @@ class Test(TestCase):
         self.assertEqual(Bill.objects.first().amount, 300)
         self.client.patch("/invoice/bill/1/", {"ignore": True}, content_type="application/json")
         self.assertEqual(Bill.objects.first().amount, 0)
+
+    def test_get_cashcall(self):
+        """
+        Ensure appropriate cashcall for bill is returned when requested.
+        """
+        Investor.objects.create(name="Harry Guile", email="hguile@gmail.com", active_member=True)
+        # No cashcall available return one
+        self.assertEqual(CashCall.objects.count(), 1)
+        get_cashcall(Investor.objects.first(), 1)
+        self.assertEqual(CashCall.objects.count(), 2) # Cashcall created when none available
+        get_cashcall(Investor.objects.first(), 0)
+        self.assertEqual(CashCall.objects.count(), 2) # Empty cashcall available, don't create more
+        Investor.objects.create(name="Harry Guile's clone", email="hguile@clone.com", active_member=True)
+        self.assertEqual(CashCall.objects.count(), 3) # Membership placeholder cashcall
+        get_cashcall(Investor.objects.last(), 0)
+        self.assertEqual(CashCall.objects.count(), 4) # Cashcall created when none available for different investor
+        get_cashcall(Investor.objects.last(), 1)
+        self.assertEqual(CashCall.objects.count(), 4) # Cashcall repurposed as still empty
+        Investor.objects.create(name="Harry Guile's clone 2", email="hguile@clone2.com", active_member=True)
+        self.assertEqual(CashCall.objects.count(), 5) # Membership placeholder cashcall
+        last_cashcall = CashCall.objects.last()
+        last_cashcall.sent = False
+        last_cashcall.save()
+        for bill in last_cashcall.bills:
+            bill.validated = False
+            bill.ignore = False
+            bill.fulfilled = False
+            bill.save()
+        get_cashcall(Investor.objects.last(), 0)
+        self.assertEqual(CashCall.objects.count(), 5) # Membership bill cashcall fits
+        last_cashcall = CashCall.objects.last()
+        for bill in last_cashcall.bills:
+            bill.validated = True
+            bill.save()
+        get_cashcall(Investor.objects.last(), 1)
+        self.assertEqual(CashCall.objects.count(), 5) # Membership bill cashcall fits
+
+    def test_yearly_spend(self):
+        investor = Investor.objects.create(name="Harry Guile", email="hguile@gmail.com", active_member=True)
+        Bill.objects.create(frequency="M1", bill_type="A", amount=10_000, investor=investor, fulfilled=True, cashcall=get_cashcall(investor, 0), date = date.today())
+        one_year_back = date.today().replace(year=date.today().year - 1)
+        Bill.objects.create(frequency="M1", bill_type="A", amount=10_000, investor=investor, fulfilled=True, cashcall=get_cashcall(investor, 0), date = one_year_back)
+        two_years_back = date.today().replace(year=date.today().year - 2)
+        Bill.objects.create(frequency="M1", bill_type="A", amount=10_000, investor=investor, fulfilled=True, cashcall=get_cashcall(investor, 0), date = two_years_back)
+        three_years_back = date.today().replace(year=date.today().year - 3)
+        Bill.objects.create(frequency="M1", bill_type="A", amount=10_000, investor=investor, fulfilled=True, cashcall=get_cashcall(investor, 0), date = three_years_back)
+        four_years_back = date.today().replace(year=date.today().year - 4)
+        Bill.objects.create(frequency="M1", bill_type="A", amount=10_000, investor=investor, fulfilled=True, cashcall=get_cashcall(investor, 0), date = four_years_back)
+        five_years_back = date.today().replace(year=date.today().year - 5)
+        Bill.objects.create(frequency="M1", bill_type="A", amount=10_000, investor=investor, fulfilled=True, cashcall=get_cashcall(investor, 0), date = five_years_back)
+        self.assertEqual(yearly_spend(investor, date.today(), 1), 10_000)
+        self.assertEqual(yearly_spend(investor, date.today(), 2), 20_000)
+        self.assertEqual(yearly_spend(investor, date.today(), 3), 30_000)
+        self.assertEqual(yearly_spend(investor, date.today(), 4), 40_000)
+        self.assertEqual(yearly_spend(investor, date.today(), 5), 50_000)
