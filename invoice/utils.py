@@ -35,11 +35,12 @@ def calc_amount_due_investment(investment: Investment, instalment_no: int):
             break
     if instalment_no == 1:
         end_of_year = date(investment.date_created.year, 12, 31)
-        num_of_days = dcm((end_of_year - investment.date_created).days)
-        days_in_year = dcm((end_of_year - date(investment.date_created.year, 1, 1)).days)
+        num_of_days = dcm((end_of_year - investment.date_created).days + 1)
+        days_in_year = dcm((end_of_year - date(investment.date_created.year, 1, 1)).days + 1)
         amount = (num_of_days / days_in_year) * (investment.fee_percent - discount) / 100 * investment.total_amount
+        return min(amount, investment.amount_left), discount / 100 * investment.total_amount
     amount = (investment.fee_percent - discount) / 100 * investment.total_amount
-    return min(amount, investment.amount_left)
+    return min(amount, investment.amount_left), discount / 100 * investment.total_amount
 
 
 def yearly_spend(investor: Investor, start_date:date, years_back: int):
