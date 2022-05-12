@@ -54,7 +54,7 @@ def yearly_spend(investor: Investor, start_date:date, years_back: int):
     return amount_spent
 
 
-def calc_amount_due_membership(investor: Investor, pro_rata_days=0):
+def calc_amount_due_membership(investor: Investor, pro_rata_days=None):
     """
     Get membership amount due. Accounts for waiving if over yearly spend.
     Also accounts for membership deactivation by pro-rata billing.
@@ -73,8 +73,8 @@ def calc_amount_due_membership(investor: Investor, pro_rata_days=0):
     if yearly_spend(investor=investor,start_date=date.today(), years_back=1) >= membership_waive:
         return Decimal('0')
     # Handle membership billing prorata on deactivation of account
-    if pro_rata_days:
+    if pro_rata_days != None:
         start_date = date.today() - timedelta(days=pro_rata_days)
-        return dcm(pro_rata_days)/days_in_year(start_date) * membership_fee
+        return dcm(pro_rata_days)/days_in_year(start_date.year) * membership_fee
     # Handle regular membership
     return membership_fee
