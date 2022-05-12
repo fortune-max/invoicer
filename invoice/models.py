@@ -24,7 +24,6 @@ class Investment(models.Model):
     amount_paid = models.DecimalField(max_digits=20, decimal_places=2, default=0, validators=PRICE_VALIDATOR)
     amount_waived = models.DecimalField(max_digits=20, decimal_places=2, default=0, validators=PRICE_VALIDATOR)
     total_instalments = models.IntegerField()
-    last_instalment = models.IntegerField(default=0)
     investor = models.ForeignKey(Investor, on_delete=models.CASCADE)
 
     @property
@@ -34,6 +33,11 @@ class Investment(models.Model):
     @property
     def fulfilled(self):
         return self.amount_paid + self.amount_waived >= self.total_amount
+
+    @property
+    def last_instalment(self):
+        bill = Bill.objects.filter(investment=self.pk, ignore=0, bill_type="INVESTMENT").order_by("-instalment_no").first()
+        return bill.instalment_no if bill else 0
 
     def __str__(self):
         return f"{self.name} €{self.amount_paid + self.amount_waived} of €{self.total_amount} paid"
