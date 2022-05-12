@@ -68,62 +68,75 @@ class BillViewSet(viewsets.ModelViewSet):
 
 
 def generate(self):
-    # todo accept params investor_id, all
     investor_id = self.POST.get("investor_id")
+    dry_run = safe_eval(self.POST.get("dry_run"))
+    all_investors = safe_eval(self.POST.get("all"))
+
+    if not investor_id or not all_investors:
+        return HttpResponse("POST investor ID's to be sent to this endpoint. eg curl -d 'investor_id=2' -X POST http://localhost:8000/invoice/generate")
+
     response = []
     today = date.today()
-    two_years_ago = today.replace(year=today.year-2)
+    bill_date_lower_limit = today.replace(year=today.year-2)
 
     # Generate bills for membership
-    bills = Bill.objects.filter(date__gt=two_years_ago, bill_type="MEMBERSHIP", frequency="Y1").order_by("date") # oldest to newest
+    bills = Bill.objects.filter(date__gt=bill_date_lower_limit, bill_type="MEMBERSHIP", frequency="Y1").order_by("date") # oldest to newest
+    if investor_id:
+        investor = get_object_or_404(Investor, pk=investor_id)
+        bills = bills.filter(investor=investor)
     last_membership_bill = {bill.investor.id: bill for bill in bills}
     for investor_id, bill in last_membership_bill.items():
         next_bill_date = bill.date.replace(year=bill.date.year+1)
         if next_bill_date <= today:
-            investor = Investor.objects.get(pk=investor_id)
-            active = investor.active_member
-            amount = calc_amount_due_membership(investor=investor)
-            membership_cashcall = get_cashcall(investor=investor, validated=not active)
-            membership_bill = Bill(
-                frequency = "Y1",
-                bill_type = "MEMBERSHIP",
-                amount = amount if active else 0,
-                validated = False if active else True,
-                ignore = False if active else True,
-                fulfilled = False if active else True,
-                investor = investor,
-                cashcall = membership_cashcall,
-                date = next_bill_date,
-            )
-            membership_bill.save()
-            response.append(f"Billed {investor.name} {membership_bill.amount} EUR for yearly membership")
+            if not dry_run:
+                investor = Investor.objects.get(pk=investor_id)
+                active = investor.active_member
+                amount = calc_amount_due_membership(investor=investor)
+                membership_cashcall = get_cashcall(investor=investor, validated=not active)
+                membership_bill = Bill(
+                    frequency = "Y1",
+                    bill_type = "MEMBERSHIP",
+                    amount = amount if active else 0,
+                    validated = False if active else True,
+                    ignore = False if active else True,
+                    fulfilled = False if active else True,
+                    investor = investor,
+                    cashcall = membership_cashcall,
+                    date = next_bill_date,
+                )
+                membership_bill.save()
+            response.append(f"{'[DRY RUN!!] ' if dry_run else ''}Billed {investor.name} {membership_bill.amount} EUR for yearly membership")
 
-    # Generate bills for investment, TODO check if user is active
-    bills = Bill.objects.filter(date__gt=two_years_ago, bill_type="INVESTMENT", frequency="Y1").order_by("date") # oldest to newest
+    # Generate bills for investment
+    bills = Bill.objects.filter(date__gt=bill_date_lower_limit, bill_type="INVESTMENT", frequency="Y1").order_by("date") # oldest to newest
+    if investor_id:
+        investor = get_object_or_404(Investor, pk=investor_id)
+        bills = bills.filter(investor=investor)
     bills = [bill for bill in bills if not bill.investment.fulfilled and bill.investment.last_instalment < bill.investment.total_instalments]
     last_investment_bill = {(bill.investor.id, bill.investment.id): bill for bill in bills}
     for ((investor_id, investment_id), bill) in last_investment_bill.items():
         next_bill_date = bill.date.replace(year=bill.date.year+1)
         if next_bill_date <= today:
-            investor = Investor.objects.get(pk=investor_id)
-            active = investor.active_member
-            amount = calc_amount_due_investment(investment=bill.investment, instalment_no=bill.instalment_no + 1)
-            investment_cashcall = get_cashcall(investor=investor, validated=not active)
-            investment_bill = Bill(
-                frequency = "Y1",
-                bill_type = "INVESTMENT",
-                amount = amount if active else 0,
-                validated = False if active else True,
-                ignore = False if active else True,
-                fulfilled = False if active else True,
-                investor = investor,
-                cashcall = investment_cashcall,
-                date = next_bill_date,
-                investment = bill.investment,
-                instalment_no = bill.instalment_no + active,
-            )
-            investment_bill.save()
-            response.append(f"Billed {investor.name} {amount} EUR for yearly investment")
+            if not dry_run:
+                investor = Investor.objects.get(pk=investor_id)
+                active = investor.active_member
+                amount = calc_amount_due_investment(investment=bill.investment, instalment_no=bill.instalment_no + 1)
+                investment_cashcall = get_cashcall(investor=investor, validated=not active)
+                investment_bill = Bill(
+                    frequency = "Y1",
+                    bill_type = "INVESTMENT",
+                    amount = amount if active else 0,
+                    validated = False if active else True,
+                    ignore = False if active else True,
+                    fulfilled = False if active else True,
+                    investor = investor,
+                    cashcall = investment_cashcall,
+                    date = next_bill_date,
+                    investment = bill.investment,
+                    instalment_no = bill.instalment_no + active,
+                )
+                investment_bill.save()
+            response.append(f"{'[DRY RUN!!] ' if dry_run else ''}Billed {investor.name} {amount} EUR for yearly investment")
     return HttpResponse('\n'.join(response))
 
 def send(self):
