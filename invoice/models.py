@@ -30,8 +30,16 @@ class Investment(models.Model):
         return sum([bill.amount for bill in Bill.objects.filter(investment=self.pk, fulfilled=True)])
 
     @property
+    def amount_billed(self):
+        return sum([bill.amount for bill in Bill.objects.filter(investment=self.pk)])
+
+    @property
     def amount_left(self):
         return max(self.total_amount - (self.amount_waived + self.amount_paid), 0)
+
+    @property
+    def amount_not_billed(self):
+        return max(self.total_amount - (self.amount_waived + self.amount_billed), 0)
 
     @property
     def fulfilled(self):

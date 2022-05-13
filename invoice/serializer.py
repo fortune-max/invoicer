@@ -29,6 +29,8 @@ class InvestmentSerializer(serializers.ModelSerializer):
     fulfilled = serializers.ReadOnlyField()
     amount_paid = serializers.ReadOnlyField()
     amount_left = serializers.ReadOnlyField()
+    amount_billed = serializers.ReadOnlyField()
+    amount_not_billed = serializers.ReadOnlyField()
     last_instalment = serializers.ReadOnlyField()
 
     class Meta:
