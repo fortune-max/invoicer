@@ -19,7 +19,7 @@ class Test(TestCase):
         Ensure that endpoint to create investor works.
         """
         url = "/invoice/investor/"
-        response = self.client.post(url, self.investor_json, format='json')
+        response = self.client.post(url, self.investor_json, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Investor.objects.count(), 1)
         self.assertEqual(Investor.objects.get().name, self.investor_json["name"])
@@ -119,6 +119,10 @@ class Test(TestCase):
         self.assertEqual(CashCall.objects.count(), 5) # Membership bill cashcall fits
 
     def test_yearly_spend(self):
+        """
+        Ensure that yearly spend is accurately calculated.
+        Even across leap years.
+        """
         investor = Investor.objects.create(name="Harry Guile", email="hguile@gmail.com", active_member=True)
         Bill.objects.create(frequency="M1", bill_type="A", amount=10_000, investor=investor, fulfilled=True, cashcall=get_cashcall(investor, 0), date = date.today())
         one_year_back = date.today().replace(year=date.today().year - 1)
@@ -160,3 +164,34 @@ class Test(TestCase):
         response = self.client.patch("/invoice/investor/2/", {"active_member": False}, content_type="application/json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Bill.objects.filter(investor=investor_2).last().amount, 3000)
+
+    def test_generate_bill_membership(self):
+        """
+        Ensure membership bill generation is accurate.
+        Ensure member is billed same day every year, even across leap years.
+        """
+        four_years_back = date.today().replace(year=date.today().year - 4)
+        investor = Investor.objects.create(name="Harry Guile", email="hguile@gmail.com", active_member=True, join_date=four_years_back)
+        response = self.client.patch("/invoice/bill/1/", {"date": four_years_back}, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Bill.objects.count(), 1)
+        response = self.client.post("/invoice/generate", {"all": 1, "years_back": 5}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Bill.objects.count(), 2)
+        self.assertEqual(Bill.objects.last().amount, 3000)
+        response = self.client.post("/invoice/generate", {"all": 1, "years_back": 5}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Bill.objects.count(), 3)
+        self.assertEqual(Bill.objects.last().amount, 3000)
+        response = self.client.post("/invoice/generate", {"all": 1, "years_back": 5}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Bill.objects.count(), 4)
+        self.assertEqual(Bill.objects.last().amount, 3000)
+        response = self.client.post("/invoice/generate", {"all": 1, "years_back": 5}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Bill.objects.count(), 5)
+        self.assertEqual(Bill.objects.last().amount, 3000)
+        response = self.client.post("/invoice/generate", {"all": 1, "years_back": 5}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Bill.objects.count(), 5)
+        self.assertEqual(Bill.objects.last().amount, 3000)

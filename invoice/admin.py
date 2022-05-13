@@ -62,7 +62,6 @@ def bill_membership_active_toggle(sender, instance, *args, **kwargs):
         if investor_old.active_member==True and instance.active_member==False:
             # deactivation of account
             last_membership_bill = models.Bill.objects.filter(bill_type="MEMBERSHIP", investor=instance).order_by("-date").first()
-            print (last_membership_bill.investor, last_membership_bill.investor.join_date)
             pro_rata_days = (date.today() - last_membership_bill.date).days
             membership_cashcall = get_cashcall(instance, False)
             membership_bill = models.Bill(
