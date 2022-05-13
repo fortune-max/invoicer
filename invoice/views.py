@@ -118,7 +118,7 @@ def generate(self):
     if investor_id:
         investor = get_object_or_404(Investor, pk=investor_id)
         bills = bills.filter(investor=investor)
-    bills = [bill for bill in bills if not bill.investment.fulfilled and bill.investment.last_instalment < bill.investment.total_instalments]
+    bills = [bill for bill in bills if bill.investment.amount_not_billed > 0 and bill.investment.last_instalment < bill.investment.total_instalments]
     last_investment_bill = {(bill.investor.id, bill.investment.id): bill for bill in bills}
     for ((investor_id, investment_id), bill) in last_investment_bill.items():
         next_bill_date = bill.date.replace(year=bill.date.year+1)

@@ -39,9 +39,15 @@ def calc_amount_due_investment(investment: Investment, instalment_no: int):
         num_of_days = dcm((end_of_year - investment.date_created).days + 1)
         days_in_year = dcm((end_of_year - date(investment.date_created.year, 1, 1)).days + 1)
         amount = (num_of_days / days_in_year) * (investment.fee_percent - discount) / 100 * investment.total_amount
-        return min(amount, investment.amount_not_billed), discount / 100 * investment.total_amount
+        to_pay = min(amount, investment.amount_not_billed)
+        to_waive = (num_of_days / days_in_year) * discount / 100 * investment.total_amount
+        to_waive = min(to_waive, investment.amount_not_billed - to_pay)
+        return to_pay, to_waive
     amount = (investment.fee_percent - discount) / 100 * investment.total_amount
-    return min(amount, investment.amount_not_billed), discount / 100 * investment.total_amount
+    to_pay = min(amount, investment.amount_not_billed)
+    to_waive = discount / 100 * investment.total_amount
+    to_waive = min(to_waive, investment.amount_not_billed - to_pay)
+    return to_pay, to_waive
 
 
 def yearly_spend(investor: Investor, start_date:date, years_back: int):
