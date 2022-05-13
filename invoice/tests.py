@@ -3,9 +3,9 @@ from datetime import date, timedelta
 from django.test import TestCase
 from rest_framework import status
 from .models import Bill, CashCall, Investment, Investor
-from .serializer import BillSerializer, CashCallSerializer, InvestmentSerializer, InvestorSerializer
 from .utils import get_cashcall, yearly_spend, calc_amount_due_investment, calc_amount_due_membership
 
+dcm = lambda x: Decimal(str(x))
 
 class Test(TestCase):
     investor_json = {
@@ -195,3 +195,70 @@ class Test(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Bill.objects.count(), 5)
         self.assertEqual(Bill.objects.last().amount, 3000)
+
+    def test_generate_bill_investment(self):
+        """
+        Test discounting is accurate; waives and amounts to pay are accurate.
+        Test discounting stops once amount is achieved, notwithstanding total_instalments defined. OK!
+        Test that on last payment, outstanding is paid and not calculated amount for that instalment. OK!
+        """
+        one_year_back = date.today().replace(year=date.today().year - 1)
+        investor = Investor.objects.create(name="Harry Guile", email="hguile@gmail.com", active_member=True)
+        self.assertEqual(Bill.objects.count(), 1)
+
+        Investment.objects.create(name="Borland", fee_percent=Decimal('20'), total_amount=12_000, total_instalments=7, date_created=date(1901,4,25), investor=Investor.objects.first())
+        response = self.client.patch("/invoice/bill/2/", {"date": date(1901,4,25)}, content_type="application/json")
+        self.assertEqual(Bill.objects.count(), 2)
+        self.assertEqual(Bill.objects.last().amount, dcm(1609.15))
+        self.assertEqual(Investment.objects.last().amount_billed, dcm(1609.15))
+        self.assertEqual(Investment.objects.last().amount_waived, dcm(41.26))
+        self.assertEqual(Investment.objects.last().amount_not_billed, dcm(10349.59))
+
+        response = self.client.post("/invoice/generate", {"all": 1, "years_back": 200}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Bill.objects.count(), 3)
+        self.assertEqual(Bill.objects.last().amount, dcm(2280))
+        self.assertEqual(Investment.objects.last().amount_billed, dcm(3889.15))
+        self.assertEqual(Investment.objects.last().amount_waived, dcm(161.26))
+        self.assertEqual(Investment.objects.last().amount_not_billed, dcm(7949.59))
+
+        response = self.client.post("/invoice/generate", {"all": 1, "years_back": 200}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Bill.objects.count(), 4)
+        self.assertEqual(Bill.objects.last().amount, dcm(1800))
+        self.assertEqual(Investment.objects.last().amount_billed, dcm(5689.15))
+        self.assertEqual(Investment.objects.last().amount_waived, dcm(761.26))
+        self.assertEqual(Investment.objects.last().amount_not_billed, dcm(5549.59))
+
+        response = self.client.post("/invoice/generate", {"all": 1, "years_back": 200}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Bill.objects.count(), 5)
+        self.assertEqual(Bill.objects.last().amount, dcm(1200))
+        self.assertEqual(Investment.objects.last().amount_billed, dcm(6889.15))
+        self.assertEqual(Investment.objects.last().amount_waived, dcm(1961.26))
+        self.assertEqual(Investment.objects.last().amount_not_billed, dcm(3149.59))
+
+        response = self.client.post("/invoice/generate", {"all": 1, "years_back": 200}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Bill.objects.count(), 6)
+        self.assertEqual(Bill.objects.last().amount, dcm(1200))
+        self.assertEqual(Investment.objects.last().amount_billed, dcm(8089.15))
+        self.assertEqual(Investment.objects.last().amount_waived, dcm(3161.26))
+        self.assertEqual(Investment.objects.last().amount_not_billed, dcm(749.59))
+
+        response = self.client.post("/invoice/generate", {"all": 1, "years_back": 200}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Bill.objects.count(), 7)
+        self.assertEqual(Bill.objects.last().amount, dcm(749.59))
+        self.assertEqual(Investment.objects.last().amount_billed, dcm(8838.74))
+        self.assertEqual(Investment.objects.last().amount_waived, dcm(3161.26))
+        self.assertEqual(Investment.objects.last().amount_not_billed, dcm(0.0))
+
+        # Ensure no more bills issued as soon as complete bills issued.
+        response = self.client.post("/invoice/generate", {"all": 1, "years_back": 200}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Bill.objects.count(), 7)
+        self.assertEqual(Bill.objects.last().amount, dcm(749.59))
+        self.assertEqual(Investment.objects.last().amount_billed, dcm(8838.74))
+        self.assertEqual(Investment.objects.last().amount_waived, dcm(3161.26))
+        self.assertEqual(Investment.objects.last().amount_not_billed, dcm(0.0))
