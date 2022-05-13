@@ -136,3 +136,27 @@ class Test(TestCase):
         self.assertEqual(yearly_spend(investor, date.today(), 3), 30_000)
         self.assertEqual(yearly_spend(investor, date.today(), 4), 40_000)
         self.assertEqual(yearly_spend(investor, date.today(), 5), 50_000)
+
+    def test_50K_threshold_spend(self):
+        """
+        Test that once 50K or over is spent in past year cumulatively, no membership is billed.
+        Both when membership billing is triggered on deactivation or in regular course of full year.
+        """
+        # gte threshold, billed 0
+        investor = Investor.objects.create(name="Harry Guile", email="hguile@gmail.com", active_member=True)
+        one_year_back_inc = date.today().replace(year=date.today().year - 1) + timedelta(days=1)
+        Bill.objects.create(frequency="M1", bill_type="A", amount=50_000, investor=investor, fulfilled=True, cashcall=get_cashcall(investor, 0), date = one_year_back_inc)
+        self.assertEqual(yearly_spend(investor, date.today(), 1), 50_000)
+        response = self.client.patch("/invoice/investor/1/", {"active_member": False}, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Bill.objects.last().amount, 0)
+        # under threshold, billed in full
+        one_year_back = date.today().replace(year=date.today().year - 1)
+        investor_2 = Investor.objects.create(name="Harry Guile 2", email="hguile2@gmail.com", active_member=True)
+        response = self.client.patch("/invoice/bill/4/", {"date": one_year_back}, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        Bill.objects.create(frequency="M1", bill_type="A", amount=50_000, investor=investor_2, fulfilled=True, cashcall=get_cashcall(investor_2, 0), date=one_year_back)
+        self.assertEqual(yearly_spend(investor_2, date.today(), 1), 0)
+        response = self.client.patch("/invoice/investor/2/", {"active_member": False}, content_type="application/json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Bill.objects.filter(investor=investor_2).last().amount, 3000)
