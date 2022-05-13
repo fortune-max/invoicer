@@ -111,7 +111,7 @@ def generate(self):
                     date = next_bill_date,
                 )
                 membership_bill.save()
-            response.append(f"{'[DRY RUN!!] ' if dry_run else ''}Billed {investor.name} {membership_bill.amount} EUR for yearly membership")
+            response.append(f"{'[DRY RUN!!] ' if dry_run else ''}Billed {investor.name} {round(amount, 2) if active else 0} EUR for yearly membership")
 
     # Generate bills for investment
     bills = Bill.objects.filter(date__gt=bill_date_lower_limit, bill_type="INVESTMENT", frequency="Y1").order_by("date") # oldest to newest
@@ -144,7 +144,7 @@ def generate(self):
                 investment_bill.save()
                 bill.investment.amount_waived = F("amount_waived") + waived
                 bill.investment.save()
-            response.append(f"{'[DRY RUN!!] ' if dry_run else ''}Billed {investor.name} {amount} EUR for yearly investment")
+            response.append(f"{'[DRY RUN!!] ' if dry_run else ''}Billed {investor.name} {round(amount, 2) if active else 0} EUR for yearly investment")
     if response:
         return HttpResponse('\n'.join(response))
     else:

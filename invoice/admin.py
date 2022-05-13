@@ -51,7 +51,7 @@ def bill_investment(sender, instance, created, **kwargs):
             investment = instance,
         )
         investment_bill.save()
-        instance.amount_waived = F("amount_waived") + to_waive
+        instance.amount_waived = to_waive
         instance.save()
 
 # Bill membership fee on active toggle. 0 EUR if reactivated, {days/yr_days * membership_fee} EUR if deactivated
