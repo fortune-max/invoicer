@@ -73,12 +73,17 @@ def generate(self):
     dry_run = safe_eval(self.POST.get("dry_run", "False"))
     all_investors = safe_eval(self.POST.get("all", "False"))
 
+    today = date.today()
+    # Use this to set how far back older bills should be considered.
+    # Ideally should be a bit (minimum a day) over the maximum period of any recurring bill.
+    # To account for system downtime, so as not to miss time window, best to add a few months extra, we use 12 here.
+    years_back = safe_eval(self.POST.get("years_back", "2"))
+    bill_date_lower_limit = today.replace(year=today.year-years_back)
+
     if not (investor_id or all_investors):
         return HttpResponse("POST investor ID's whose cashcall & bills are to be generated to this endpoint. eg curl -d 'investor_id=2' -X POST http://localhost:8000/invoice/generate")
 
     response = []
-    today = date.today()
-    bill_date_lower_limit = today.replace(year=today.year-2)
 
     # Generate bills for membership
     bills = Bill.objects.filter(date__gt=bill_date_lower_limit, bill_type="MEMBERSHIP", frequency="Y1").order_by("date") # oldest to newest
