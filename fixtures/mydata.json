@@ -1,0 +1,825 @@
+[
+{
+    "model": "invoice.investor",
+    "pk": 1,
+    "fields": {
+        "name": "John Perry",
+        "email": "jperry@gmail.com",
+        "join_date": "2008-02-10",
+        "active_member": true
+    }
+},
+{
+    "model": "invoice.investment",
+    "pk": 1,
+    "fields": {
+        "name": "Android",
+        "date_created": "2009-05-14",
+        "fee_percent": "20.00",
+        "total_amount": "100000.00",
+        "amount_waived": "0.00",
+        "total_instalments": 5,
+        "investor": 1
+    }
+},
+{
+    "model": "invoice.cashcall",
+    "pk": 1,
+    "fields": {
+        "sent_date": "2008-02-11",
+        "due_date": "2008-04-12",
+        "sent": true,
+        "investor": 1
+    }
+},
+{
+    "model": "invoice.cashcall",
+    "pk": 2,
+    "fields": {
+        "sent_date": "2022-05-13",
+        "due_date": "2022-07-14",
+        "sent": true,
+        "investor": 1
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 1,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "MEMBERSHIP",
+        "amount": "0.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": true,
+        "fulfilled": true,
+        "cashcall": 1,
+        "date": "2008-02-10",
+        "instalment_no": null,
+        "investment": null
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 2,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "INVESTMENT",
+        "amount": "12712.33",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2009-05-14",
+        "instalment_no": 1,
+        "investment": 1
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 5,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "MEMBERSHIP",
+        "amount": "3000.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2009-02-10",
+        "instalment_no": null,
+        "investment": null
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 6,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "MEMBERSHIP",
+        "amount": "3000.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2010-02-10",
+        "instalment_no": null,
+        "investment": null
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 7,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "MEMBERSHIP",
+        "amount": "3000.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2011-02-10",
+        "instalment_no": null,
+        "investment": null
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 19,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "INVESTMENT",
+        "amount": "20000.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2010-05-14",
+        "instalment_no": 2,
+        "investment": 1
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 20,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "INVESTMENT",
+        "amount": "20000.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2011-05-14",
+        "instalment_no": 3,
+        "investment": 1
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 23,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "MEMBERSHIP",
+        "amount": "3000.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2012-02-10",
+        "instalment_no": null,
+        "investment": null
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 24,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "INVESTMENT",
+        "amount": "20000.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2012-05-14",
+        "instalment_no": 4,
+        "investment": 1
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 25,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "MEMBERSHIP",
+        "amount": "3000.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2013-02-10",
+        "instalment_no": null,
+        "investment": null
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 26,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "INVESTMENT",
+        "amount": "20000.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2013-05-14",
+        "instalment_no": 5,
+        "investment": 1
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 27,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "MEMBERSHIP",
+        "amount": "3000.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2014-02-10",
+        "instalment_no": null,
+        "investment": null
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 28,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "MEMBERSHIP",
+        "amount": "3000.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2015-02-10",
+        "instalment_no": null,
+        "investment": null
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 29,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "MEMBERSHIP",
+        "amount": "3000.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2016-02-10",
+        "instalment_no": null,
+        "investment": null
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 30,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "MEMBERSHIP",
+        "amount": "3000.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2017-02-10",
+        "instalment_no": null,
+        "investment": null
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 31,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "MEMBERSHIP",
+        "amount": "3000.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2018-02-10",
+        "instalment_no": null,
+        "investment": null
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 32,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "MEMBERSHIP",
+        "amount": "3000.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2019-02-10",
+        "instalment_no": null,
+        "investment": null
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 33,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "MEMBERSHIP",
+        "amount": "3000.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2020-02-10",
+        "instalment_no": null,
+        "investment": null
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 34,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "MEMBERSHIP",
+        "amount": "3000.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2021-02-10",
+        "instalment_no": null,
+        "investment": null
+    }
+},
+{
+    "model": "invoice.bill",
+    "pk": 35,
+    "fields": {
+        "frequency": "Y1",
+        "bill_type": "MEMBERSHIP",
+        "amount": "3000.00",
+        "investor": 1,
+        "validated": true,
+        "ignore": false,
+        "fulfilled": false,
+        "cashcall": 2,
+        "date": "2022-02-10",
+        "instalment_no": null,
+        "investment": null
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 1,
+    "fields": {
+        "name": "Can add investor",
+        "content_type": 1,
+        "codename": "add_investor"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 2,
+    "fields": {
+        "name": "Can change investor",
+        "content_type": 1,
+        "codename": "change_investor"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 3,
+    "fields": {
+        "name": "Can delete investor",
+        "content_type": 1,
+        "codename": "delete_investor"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 4,
+    "fields": {
+        "name": "Can view investor",
+        "content_type": 1,
+        "codename": "view_investor"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 5,
+    "fields": {
+        "name": "Can add investment",
+        "content_type": 2,
+        "codename": "add_investment"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 6,
+    "fields": {
+        "name": "Can change investment",
+        "content_type": 2,
+        "codename": "change_investment"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 7,
+    "fields": {
+        "name": "Can delete investment",
+        "content_type": 2,
+        "codename": "delete_investment"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 8,
+    "fields": {
+        "name": "Can view investment",
+        "content_type": 2,
+        "codename": "view_investment"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 9,
+    "fields": {
+        "name": "Can add cash call",
+        "content_type": 3,
+        "codename": "add_cashcall"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 10,
+    "fields": {
+        "name": "Can change cash call",
+        "content_type": 3,
+        "codename": "change_cashcall"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 11,
+    "fields": {
+        "name": "Can delete cash call",
+        "content_type": 3,
+        "codename": "delete_cashcall"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 12,
+    "fields": {
+        "name": "Can view cash call",
+        "content_type": 3,
+        "codename": "view_cashcall"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 13,
+    "fields": {
+        "name": "Can add bill",
+        "content_type": 4,
+        "codename": "add_bill"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 14,
+    "fields": {
+        "name": "Can change bill",
+        "content_type": 4,
+        "codename": "change_bill"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 15,
+    "fields": {
+        "name": "Can delete bill",
+        "content_type": 4,
+        "codename": "delete_bill"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 16,
+    "fields": {
+        "name": "Can view bill",
+        "content_type": 4,
+        "codename": "view_bill"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 17,
+    "fields": {
+        "name": "Can add log entry",
+        "content_type": 5,
+        "codename": "add_logentry"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 18,
+    "fields": {
+        "name": "Can change log entry",
+        "content_type": 5,
+        "codename": "change_logentry"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 19,
+    "fields": {
+        "name": "Can delete log entry",
+        "content_type": 5,
+        "codename": "delete_logentry"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 20,
+    "fields": {
+        "name": "Can view log entry",
+        "content_type": 5,
+        "codename": "view_logentry"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 21,
+    "fields": {
+        "name": "Can add permission",
+        "content_type": 6,
+        "codename": "add_permission"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 22,
+    "fields": {
+        "name": "Can change permission",
+        "content_type": 6,
+        "codename": "change_permission"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 23,
+    "fields": {
+        "name": "Can delete permission",
+        "content_type": 6,
+        "codename": "delete_permission"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 24,
+    "fields": {
+        "name": "Can view permission",
+        "content_type": 6,
+        "codename": "view_permission"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 25,
+    "fields": {
+        "name": "Can add group",
+        "content_type": 7,
+        "codename": "add_group"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 26,
+    "fields": {
+        "name": "Can change group",
+        "content_type": 7,
+        "codename": "change_group"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 27,
+    "fields": {
+        "name": "Can delete group",
+        "content_type": 7,
+        "codename": "delete_group"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 28,
+    "fields": {
+        "name": "Can view group",
+        "content_type": 7,
+        "codename": "view_group"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 29,
+    "fields": {
+        "name": "Can add user",
+        "content_type": 8,
+        "codename": "add_user"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 30,
+    "fields": {
+        "name": "Can change user",
+        "content_type": 8,
+        "codename": "change_user"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 31,
+    "fields": {
+        "name": "Can delete user",
+        "content_type": 8,
+        "codename": "delete_user"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 32,
+    "fields": {
+        "name": "Can view user",
+        "content_type": 8,
+        "codename": "view_user"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 33,
+    "fields": {
+        "name": "Can add content type",
+        "content_type": 9,
+        "codename": "add_contenttype"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 34,
+    "fields": {
+        "name": "Can change content type",
+        "content_type": 9,
+        "codename": "change_contenttype"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 35,
+    "fields": {
+        "name": "Can delete content type",
+        "content_type": 9,
+        "codename": "delete_contenttype"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 36,
+    "fields": {
+        "name": "Can view content type",
+        "content_type": 9,
+        "codename": "view_contenttype"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 37,
+    "fields": {
+        "name": "Can add session",
+        "content_type": 10,
+        "codename": "add_session"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 38,
+    "fields": {
+        "name": "Can change session",
+        "content_type": 10,
+        "codename": "change_session"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 39,
+    "fields": {
+        "name": "Can delete session",
+        "content_type": 10,
+        "codename": "delete_session"
+    }
+},
+{
+    "model": "auth.permission",
+    "pk": 40,
+    "fields": {
+        "name": "Can view session",
+        "content_type": 10,
+        "codename": "view_session"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 1,
+    "fields": {
+        "app_label": "invoice",
+        "model": "investor"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 2,
+    "fields": {
+        "app_label": "invoice",
+        "model": "investment"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 3,
+    "fields": {
+        "app_label": "invoice",
+        "model": "cashcall"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 4,
+    "fields": {
+        "app_label": "invoice",
+        "model": "bill"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 5,
+    "fields": {
+        "app_label": "admin",
+        "model": "logentry"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 6,
+    "fields": {
+        "app_label": "auth",
+        "model": "permission"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 7,
+    "fields": {
+        "app_label": "auth",
+        "model": "group"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 8,
+    "fields": {
+        "app_label": "auth",
+        "model": "user"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 9,
+    "fields": {
+        "app_label": "contenttypes",
+        "model": "contenttype"
+    }
+},
+{
+    "model": "contenttypes.contenttype",
+    "pk": 10,
+    "fields": {
+        "app_label": "sessions",
+        "model": "session"
+    }
+}
+]
