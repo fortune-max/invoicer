@@ -27,6 +27,10 @@ class CashCallSerializer(serializers.ModelSerializer):
 
 class InvestmentSerializer(serializers.ModelSerializer):
     fulfilled = serializers.ReadOnlyField()
+    amount_paid = serializers.ReadOnlyField()
+    amount_left = serializers.ReadOnlyField()
+    last_instalment = serializers.ReadOnlyField()
+
     class Meta:
         model = Investment
         fields = "__all__"
