@@ -21,10 +21,13 @@ class Investment(models.Model):
     date_created = models.DateField(default=date.today)
     fee_percent = models.DecimalField(max_digits=10, decimal_places=2, validators=PERCENTAGE_VALIDATOR)
     total_amount = models.DecimalField(max_digits=20, decimal_places=2, validators=PRICE_VALIDATOR)
-    amount_paid = models.DecimalField(max_digits=20, decimal_places=2, default=0, validators=PRICE_VALIDATOR)
     amount_waived = models.DecimalField(max_digits=20, decimal_places=2, default=0, validators=PRICE_VALIDATOR)
     total_instalments = models.IntegerField()
     investor = models.ForeignKey(Investor, on_delete=models.CASCADE)
+
+    @property
+    def amount_paid(self):
+        return sum([bill.amount for bill in Bill.objects.filter(investment=self.pk, fulfilled=True)])
 
     @property
     def amount_left(self):
@@ -36,7 +39,7 @@ class Investment(models.Model):
 
     @property
     def last_instalment(self):
-        bill = Bill.objects.filter(investment=self.pk, ignore=0, bill_type="INVESTMENT").order_by("-instalment_no").first()
+        bill = Bill.objects.filter(investment=self.pk).order_by("-instalment_no").first()
         return bill.instalment_no if bill else 0
 
     def __str__(self):
